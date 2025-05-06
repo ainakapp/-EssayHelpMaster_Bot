@@ -1,0 +1,54 @@
+from aiogram import Bot, Dispatcher
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
+from aiogram import F
+import asyncio
+
+# Ваш токен от BotFather
+API_TOKEN = "7974267666:AAEdrT7ri5jTBaHtoB8Ev-ji56374GHvSS4"
+
+# Инициализация бота и диспетчера
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher()
+
+# Создание клавиатуры
+keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="Beginner"), KeyboardButton(text="Intermediate")],
+        [KeyboardButton(text="Advanced")]
+    ],
+    resize_keyboard=True
+)
+
+# Обработчик команды /start
+@dp.message(F.text == "/start")
+async def send_welcome(message: Message):
+    await message.answer(
+        "Привет! Я помогу подобрать ресурсы для написания эссе на английском. Выберите ваш уровень:",
+        reply_markup=keyboard
+    )
+
+# Обработчик нажатий на кнопки
+@dp.message(F.text.in_({"Beginner", "Intermediate", "Advanced"}))
+async def recommend_books(message: Message):
+    level = message.text
+    if level == "Beginner":
+        books = "1. scholar.google.com - поисковая система для научных публикаций, диссертаций и статей.\n2. jstor.org - цифровая библиотека, содержащая академические журналы, книги и первоисточники."
+    elif level == "Intermediate":
+        books = "1. muse.jhu.edu - платформа для доступа к гуманитарным и социальным наукам.\n2. academia.edu - социальная сеть для ученых, где можно найти много статей и исследований."
+    else:  # Advanced
+        books = "1. bbc.com/news - одно из крупнейших новостных агенств, где можно поучиться написанию очерков и эссе у ведущих журналистов.\n2. ResearchGat.net - платформа для обмена научными публикациями и исследованиями."
+
+    await message.answer(f"Рекомендуемые ресурсы для уровня {level}:\n{books}")
+
+# Главная функция для запуска бота
+async def main():
+    # Регистрация обработчиков
+    dp.message.register(send_welcome, F.text == "/start")
+    dp.message.register(recommend_books, F.text.in_({"Beginner", "Intermediate", "Advanced"}))
+
+    # Удаление старого webhook и запуск polling
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
